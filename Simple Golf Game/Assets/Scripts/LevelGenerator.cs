@@ -9,12 +9,16 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] GameObject groundPrefab;
     [SerializeField] GameObject golfHolePrefab;
     [SerializeField] GameObject golfBallPrefab;
+
+    [SerializeField] Transform parentGroundBlocksFolder;
     private PlayerController playerController;
 
     private float left_worldPosScreenBorder, right_worldPosScreenBorder,
                     up_worldPosScreenBorder, down_worldPosScreenBorder;
     public float buildGroundLevelYOffset = 0f;
-
+    
+    //required to set the ground collider correctly
+    private Vector2 golfHolePos; 
     private int level = 0;
 
     private void Awake()
@@ -26,16 +30,23 @@ public class LevelGenerator : MonoBehaviour
     {
         level++;
         ResetLevel();
+        //create golfhole first to set ground colliders properly
+        GenerateRandomGolfHole();   
         GenerateGround();
-        GenerateRandomGolfHole();
         SpawnGolfBall();
     }
 
     //destroy every level generated object
     void ResetLevel()
     {
-        foreach (Transform child in transform)
+        //remove objects
+        foreach(Transform child in parentGroundBlocksFolder)
             GameObject.Destroy(child.gameObject);
+
+        //remove attached components (ex. gen.grounds edge colliders)
+        foreach (Component comp in parentGroundBlocksFolder.gameObject.GetComponents<Component>())
+            if (!(comp is Transform))
+                Destroy(comp);
     }
 
     void GenerateGround()
@@ -44,10 +55,21 @@ public class LevelGenerator : MonoBehaviour
         {
             for(float currentBlockPivotPosX = left_worldPosScreenBorder; (currentBlockPivotPosX - 0.64f)<= right_worldPosScreenBorder; currentBlockPivotPosX += 1.28f)
             {
-                GameObject groundBlockObj = (GameObject)Instantiate(groundPrefab, transform);
+                GameObject groundBlockObj = (GameObject)Instantiate(groundPrefab, parentGroundBlocksFolder);
                 groundBlockObj.transform.position = new Vector2(currentBlockPivotPosX, buildGroundLevelYOffset);
             }
 
+            EdgeCollider2D collider1 = parentGroundBlocksFolder.gameObject.AddComponent<EdgeCollider2D>();
+            EdgeCollider2D collider2 = parentGroundBlocksFolder.gameObject.AddComponent<EdgeCollider2D>();
+
+            Vector2[] verticles = new Vector2[2];
+            verticles[0] = new Vector2(left_worldPosScreenBorder, buildGroundLevelYOffset + 0.64f);
+            verticles[1] = new Vector2(golfHolePos.x - 0.64f, buildGroundLevelYOffset + 0.64f);
+            collider1.points = verticles;
+
+            verticles[0] = new Vector2(golfHolePos.x + 0.64f, buildGroundLevelYOffset + 0.64f);
+            verticles[1] = new Vector2(right_worldPosScreenBorder, buildGroundLevelYOffset + 0.64f);
+            collider2.points = verticles;
         }
     }
 
@@ -56,8 +78,9 @@ public class LevelGenerator : MonoBehaviour
     {
         if(golfHolePrefab!=null)
         {
-            GameObject golfHoleObj = (GameObject)Instantiate(golfHolePrefab, transform);
-            golfHoleObj.transform.position = new Vector2(Random.Range(0, right_worldPosScreenBorder - 1.0f), buildGroundLevelYOffset+0.64f);
+            GameObject golfHoleObj = (GameObject)Instantiate(golfHolePrefab, parentGroundBlocksFolder);
+            golfHolePos = new Vector2(Random.Range(0, right_worldPosScreenBorder - 1.0f), buildGroundLevelYOffset + 0.64f);
+            golfHoleObj.transform.position = golfHolePos;
         }
     }
 
@@ -66,7 +89,7 @@ public class LevelGenerator : MonoBehaviour
     {
         if(golfBallPrefab!=null)
         {
-            GameObject golfBallObj = (GameObject)Instantiate(golfBallPrefab, transform);
+            GameObject golfBallObj = (GameObject)Instantiate(golfBallPrefab, parentGroundBlocksFolder);
             playerController.player_GolfBall = golfBallObj;
 
             Vector2 spawnPoint = new Vector2(left_worldPosScreenBorder/3 * 2, 0);
@@ -84,6 +107,8 @@ public class LevelGenerator : MonoBehaviour
         Vector3 stageDimensions = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
         left_worldPosScreenBorder = -stageDimensions.x;
         right_worldPosScreenBorder = stageDimensions.x;
+        up_worldPosScreenBorder = stageDimensions.y;
+        down_worldPosScreenBorder = -stageDimensions.y;
     }
 
 }

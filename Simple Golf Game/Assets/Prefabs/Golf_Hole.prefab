@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 488961090036396994}
   m_Layer: 0
   m_Name: object_hole
-  m_TagString: Untagged
+  m_TagString: Finish
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -348,7 +348,7 @@ GameObject:
   - component: {fileID: 2145975315760879979}
   m_Layer: 0
   m_Name: Golf_Hole
-  m_TagString: Untagged
+  m_TagString: Finish
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
