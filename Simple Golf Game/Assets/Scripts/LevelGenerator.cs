@@ -10,6 +10,7 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] GameObject golfHolePrefab;
     [SerializeField] GameObject golfBallPrefab;
 
+    [SerializeField] private Text scoreTxt;
     [SerializeField] Transform parentGroundBlocksFolder;
     private PlayerController playerController;
 
@@ -23,13 +24,15 @@ public class LevelGenerator : MonoBehaviour
 
     private void Awake()
     {
-        playerController = GetComponent<PlayerController>();    
+        playerController = GetComponent<PlayerController>();
+        scoreTxt.gameObject.SetActive(false);
     }
 
     public void NewLevel()
     {
         level++;
         ResetLevel();
+        UpdatePoints(level - 1);
         //create golfhole first to set ground colliders properly
         GenerateRandomGolfHole();   
         GenerateGround();
@@ -79,6 +82,14 @@ public class LevelGenerator : MonoBehaviour
         if(golfHolePrefab!=null)
         {
             GameObject golfHoleObj = (GameObject)Instantiate(golfHolePrefab, parentGroundBlocksFolder);
+            //attach levelGen script to spawned object(next level start)
+            foreach(Transform child in golfHoleObj.transform)
+                if(child.GetComponent<GoalNextLevel>())
+                {
+                    child.GetComponent<GoalNextLevel>().levelGenerator = this.GetComponent<LevelGenerator>();
+                    break;
+                }
+
             golfHolePos = new Vector2(Random.Range(0, right_worldPosScreenBorder - 1.0f), buildGroundLevelYOffset + 0.64f);
             golfHoleObj.transform.position = golfHolePos;
         }
@@ -97,6 +108,14 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
+    void UpdatePoints(int points)
+    {
+        scoreTxt.gameObject.SetActive(true);
+        if(scoreTxt != null)
+        {
+            scoreTxt.text = "SCORE: " + points;
+        }
+    }
     //check only once when the game is started
     public void CalibrateWorldPosWithCurrentAspectRatio()
     {

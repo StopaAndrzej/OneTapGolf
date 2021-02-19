@@ -7,7 +7,6 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private LevelGenerator levelGenerator;
     [SerializeField] private List<Button> menuButtons;
-    [SerializeField] private Text levelTxt;
 
     private enum PlayerState { inMenu, inGame, gameOver}
     private PlayerState currentPlayerState;
@@ -18,7 +17,6 @@ public class PlayerController : MonoBehaviour
     {
         levelGenerator.CalibrateWorldPosWithCurrentAspectRatio();
         currentPlayerState = PlayerState.inMenu;
-        levelTxt.gameObject.SetActive(false);
         foreach (Button element in menuButtons)
             element.gameObject.SetActive(true);
     }
@@ -46,7 +44,6 @@ public class PlayerController : MonoBehaviour
     public void NewGameStart()
     {
         currentPlayerState = PlayerState.inGame;
-        levelTxt.gameObject.SetActive(true);
         foreach (Button element in menuButtons)
             element.gameObject.SetActive(false);
         levelGenerator.NewLevel();

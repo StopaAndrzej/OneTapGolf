@@ -30,14 +30,6 @@ public class GolfBall : MonoBehaviour
         return velocity * direction.normalized;
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.tag == "Finish")
-        {
-            Debug.Log("WYGRANKO!");
-        }
-    }
-
     public void Throw(Vector2 force)
     {
         rigidBody.AddForce(force, ForceMode2D.Impulse);

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 4506664707494323532}
   m_Layer: 0
   m_Name: Golf_Ball
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -146,10 +146,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6953574c8f7e8e84893541ce093f5bf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelGenerator: {fileID: 0}
   trajectoryMarkerPrefab: {fileID: 4809193517160326895, guid: 57f0f29d8e9ddff41b69e2eb3ae9f855,
     type: 3}
-  parentFolder: {fileID: 0}
   lastMarkerObj: {fileID: 0}
   maxNumberOfMarkers: 0
   allowToIncreaseDistance: 0
