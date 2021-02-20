@@ -5,6 +5,7 @@ using UnityEngine;
 public class GoalDetector : MonoBehaviour
 {
     private Animator animator;
+    [HideInInspector] public LevelGenerator levelGenerator;
 
     private void Start()
     {
@@ -20,6 +21,9 @@ public class GoalDetector : MonoBehaviour
     {
         if(collision.gameObject.tag == "Player")
         {
+            //timer of ball lifetime after throw
+            levelGenerator.StopRunTimer();
+            levelGenerator.AddPoint();
             animator.Play("Goal");
         }
     }

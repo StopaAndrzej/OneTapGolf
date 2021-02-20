@@ -14,13 +14,14 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] Transform parentGroundBlocksFolder;
     private PlayerController playerController;
 
-    private float left_worldPosScreenBorder, right_worldPosScreenBorder,
-                    up_worldPosScreenBorder, down_worldPosScreenBorder;
+    [HideInInspector] public float left_worldPosScreenBorder, right_worldPosScreenBorder,
+                      up_worldPosScreenBorder, down_worldPosScreenBorder;
+
     public float buildGroundLevelYOffset = 0f;
     
     //required to set the ground collider correctly
     private Vector2 golfHolePos; 
-    private int level = 0;
+    [HideInInspector] public int points = 0;
 
     private void Awake()
     {
@@ -30,11 +31,9 @@ public class LevelGenerator : MonoBehaviour
 
     public void NewLevel()
     {
-        level++;
         ResetLevel();
-        UpdatePoints(level - 1);
-        //create golfhole first to set ground colliders properly
-        GenerateRandomGolfHole();   
+        UpdatePointsAndDifficulty(points);
+        GenerateRandomGolfHole();                       //create golfhole first to set ground colliders properly
         GenerateGround();
         SpawnGolfBall();
     }
@@ -50,6 +49,7 @@ public class LevelGenerator : MonoBehaviour
         foreach (Component comp in parentGroundBlocksFolder.gameObject.GetComponents<Component>())
             if (!(comp is Transform))
                 Destroy(comp);
+
     }
 
     void GenerateGround()
@@ -67,28 +67,30 @@ public class LevelGenerator : MonoBehaviour
 
             Vector2[] verticles = new Vector2[2];
             verticles[0] = new Vector2(left_worldPosScreenBorder, buildGroundLevelYOffset + 0.64f);
-            verticles[1] = new Vector2(golfHolePos.x - 0.64f, buildGroundLevelYOffset + 0.64f);
+            verticles[1] = new Vector2(golfHolePos.x - 0.45f, buildGroundLevelYOffset + 0.64f);
             collider1.points = verticles;
 
-            verticles[0] = new Vector2(golfHolePos.x + 0.64f, buildGroundLevelYOffset + 0.64f);
+            verticles[0] = new Vector2(golfHolePos.x + 0.45f, buildGroundLevelYOffset + 0.64f);
             verticles[1] = new Vector2(right_worldPosScreenBorder, buildGroundLevelYOffset + 0.64f);
             collider2.points = verticles;
         }
     }
 
     //rand <from the middle of the screen to the border - 1f(boarder offset to eliminate spawn element behind the screen)>
-    void GenerateRandomGolfHole()
+    private void GenerateRandomGolfHole()
     {
         if(golfHolePrefab!=null)
         {
             GameObject golfHoleObj = (GameObject)Instantiate(golfHolePrefab, parentGroundBlocksFolder);
             //attach levelGen script to spawned object(next level start)
-            foreach(Transform child in golfHoleObj.transform)
-                if(child.GetComponent<GoalNextLevel>())
+            golfHoleObj.GetComponent<GoalDetector>().levelGenerator = this.GetComponent<LevelGenerator>();
+            foreach (Transform child in golfHoleObj.transform)
+                if (child.GetComponent<GoalNextLevel>())
                 {
                     child.GetComponent<GoalNextLevel>().levelGenerator = this.GetComponent<LevelGenerator>();
                     break;
                 }
+                
 
             golfHolePos = new Vector2(Random.Range(0, right_worldPosScreenBorder - 1.0f), buildGroundLevelYOffset + 0.64f);
             golfHoleObj.transform.position = golfHolePos;
@@ -96,7 +98,7 @@ public class LevelGenerator : MonoBehaviour
     }
 
     //spawn ball  1/3 distance between left screen boarder and middle sceen point
-    void SpawnGolfBall()
+    private void SpawnGolfBall()
     {
         if(golfBallPrefab!=null)
         {
@@ -108,14 +110,31 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
-    void UpdatePoints(int points)
+    private void UpdatePointsAndDifficulty(int points)
     {
         scoreTxt.gameObject.SetActive(true);
         if(scoreTxt != null)
         {
             scoreTxt.text = "SCORE: " + points;
         }
+
+        //x1.2f
+        playerController.IncreaseSpeedValue(1.2f);
     }
+
+    public void AddPoint()
+    {
+        points++;
+    }
+    public int GetPoints()
+    {
+        return points;
+    }
+    public void ResetPoints()
+    {
+        points = 0;
+    }
+
     //check only once when the game is started
     public void CalibrateWorldPosWithCurrentAspectRatio()
     {
@@ -128,6 +147,11 @@ public class LevelGenerator : MonoBehaviour
         right_worldPosScreenBorder = stageDimensions.x;
         up_worldPosScreenBorder = stageDimensions.y;
         down_worldPosScreenBorder = -stageDimensions.y;
+    }
+
+    public void StopRunTimer()
+    {
+        playerController.SetRunTime(false);
     }
 
 }

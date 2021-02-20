@@ -6,12 +6,10 @@ public class GolfBall : MonoBehaviour
 {
     private Trajectory trajectory;
     private Rigidbody2D rigidBody;
-    private CircleCollider2D collider;
 
     void Awake()
     {
         rigidBody = GetComponent<Rigidbody2D>();
-        collider = GetComponent<CircleCollider2D>();
         trajectory = GetComponent<Trajectory>();
     }
 
@@ -32,6 +30,7 @@ public class GolfBall : MonoBehaviour
 
     public void Throw(Vector2 force)
     {
+        trajectory.StopIncreaseDistance();
         rigidBody.AddForce(force, ForceMode2D.Impulse);
     }
 

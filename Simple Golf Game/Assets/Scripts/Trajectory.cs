@@ -12,17 +12,22 @@ public class Trajectory : MonoBehaviour
     public int maxNumberOfMarkers;
     private int actualNumberOfMarkers;
 
-    [HideInInspector] public bool allowToIncreaseDistance;
-    [HideInInspector] public float throwDistance;
-    [HideInInspector] public float increasingSpeed;
+    public float throwDistance;
+    private float increasingSpeed;
 
     private Vector2 startMarkerPos;
     private Vector2 endMarkerPos;
 
+    private bool throwChanceUsed;
+    private bool runIncrease;
+
     private void Start()
     {
-        lastMarkerObj = Instantiate(trajectoryMarkerPrefab);
-        isVisible(lastMarkerObj, false);
+        lastMarkerObj = Instantiate(trajectoryMarkerPrefab, transform);
+        lastMarkerObj.SetActive(false);
+        runIncrease = false;
+        throwChanceUsed = false;
+        throwDistance = 0;
 
         //markers = new GameObject[maxNumberOfMarkers];
         //lastMarkerObj = Instantiate(trajectoryMarkerPrefab, parentFolder);
@@ -72,44 +77,42 @@ public class Trajectory : MonoBehaviour
 
     private void Update()
     {
-        if(allowToIncreaseDistance)
+        if(runIncrease)
         {
-            startMarkerPos = transform.position;
             throwDistance += Time.deltaTime * increasingSpeed;
             endMarkerPos = new Vector2(startMarkerPos.x + throwDistance, -3.2f + 0.64f);
             lastMarkerObj.transform.position = endMarkerPos;
         }
     }
 
-    //public IEnumerator IncreaseTheThrowDistance(bool value)
-    //{
-    //    isVisible(lastMarkerObj, true);
-    //    Vector2 startMarkerPos = transform.position;
-    //    Vector2 endMarkerPos;
 
-    //    allowToIncreaseDistance = value;
-    //    while (allowToIncreaseDistance)
-    //    {
-    //        throwDistance += Time.deltaTime * increasingSpeed;
-    //        //endMarkerPos = new Vector2(startMarkerPos.x + throwDistance, levelGenerator.buildGroundLevelYOffset + 0.64f);
-    //        endMarkerPos = new Vector2(startMarkerPos.x + throwDistance, -3.2f + 0.64f);
-    //        lastMarkerObj.transform.position = endMarkerPos;
-    //        yield return null;
-    //    }
-    //}
-
-    public void isVisible(GameObject obj, bool value)
+    public bool CheckIfThrowWasUsed()
     {
-        obj.SetActive(value);
+        return throwChanceUsed;
     }
+
+    public void RunIncreaseDistance(float speedValue)
+    {
+        increasingSpeed = speedValue;
+        throwChanceUsed = true;
+        startMarkerPos = transform.position;
+        lastMarkerObj.SetActive(true);
+        runIncrease = true;
+    }
+
+    public void StopIncreaseDistance()
+    {
+        runIncrease = false;
+        ResetMarkers();
+    }
+
     public void ResetMarkers()
     {
-        isVisible(lastMarkerObj, false);
+        lastMarkerObj.SetActive(false);
         for (int i = 0; i < actualNumberOfMarkers; i++)
         {
-            isVisible(markers[i], false);
+            markers[i].SetActive(false);
         }
-
         actualNumberOfMarkers = 0;
         throwDistance = 0;
     }
