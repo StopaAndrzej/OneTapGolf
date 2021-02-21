@@ -326,7 +326,7 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -0.4551419, y: 0.28949475}
+  - {x: -0.45873094, y: 0.2374543}
   - {x: -0.45474052, y: 0.087197274}
   - {x: -0.40177932, y: -0.04413187}
   - {x: -0.25314564, y: -0.16071884}
@@ -334,7 +334,7 @@ EdgeCollider2D:
   - {x: 0.2646221, y: -0.1529302}
   - {x: 0.4102543, y: -0.034372613}
   - {x: 0.45616704, y: 0.08779015}
-  - {x: 0.45514196, y: 0.2894948}
+  - {x: 0.45693648, y: 0.2518103}
 --- !u!1 &8556835182811755204
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,3 +402,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75ee1c4717e42694aaa38a9461396a6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  levelGenerator: {fileID: 0}

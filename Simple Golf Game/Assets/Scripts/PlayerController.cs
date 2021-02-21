@@ -13,50 +13,60 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private float ballLifeTime = 5.0f;          //used for ball life time after throw
     private float actualTimer;
-    private bool runTimer;                                       
+    private bool runTimer;
+    private bool autoThrow = false;
+    private bool throwUsed;
 
-    private enum PlayerState { inMenu, inGame}
-    private PlayerState currentPlayerState;
+    [HideInInspector] public enum PlayerState { inMenu, getReady,inGame}
+    [HideInInspector] public PlayerState currentPlayerState;
 
     [HideInInspector] public GameObject player_GolfBall;
-
+    private GameObject lastSpawned_player_GolfBall;           //if player was still holding action button and new ball spawned 
+                                                             //this is additional secure to block throw action on the new golf ball
     private void Start()
     {
         levelGenerator.CalibrateWorldPosWithCurrentAspectRatio();
-        MenuMode();
+        MenuMode(true);
     }
 
     private void Update()
     {
-        if(currentPlayerState == PlayerState.inGame && player_GolfBall!=null)
+        if (currentPlayerState == PlayerState.inGame && player_GolfBall != null)
         {
-            if(Input.GetKeyDown(KeyCode.Space) && !player_GolfBall.GetComponent<Trajectory>().CheckIfThrowWasUsed())
+            if (Input.GetKeyDown(KeyCode.Space) && !player_GolfBall.GetComponent<Trajectory>().CheckIfThrowWasUsed())
             {
-                player_GolfBall.GetComponent<Trajectory>().RunIncreaseDistance(actualSpeedValue);
+                lastSpawned_player_GolfBall = player_GolfBall;
+                player_GolfBall.GetComponent<Trajectory>().RunIncreaseDistance(actualSpeedValue, levelGenerator.right_worldPosScreenBorder);
             }
 
-            if(Input.GetKeyUp(KeyCode.Space))
+            if (Input.GetKeyUp(KeyCode.Space) && !autoThrow && !throwUsed)
             {
-                GolfBall golfBall = player_GolfBall.GetComponent<GolfBall>();
-                Trajectory trajectory = player_GolfBall.GetComponent<Trajectory>();
-                golfBall.Throw(golfBall.CalculateForce(player_GolfBall.transform.position, trajectory.lastMarkerObj.transform.position, 45f));
+                PlayerThrowAction(false);
+            }
 
-                actualTimer = ballLifeTime;
-                runTimer = true;
+            //GameOver timer: 
+            //1. ball velocity = 0 and no goal
+            //2. ball out of the screen
+            //3. ball exceeded life time after throw
+            if (runTimer)
+            {
+                actualTimer -= Time.deltaTime;
+                if (actualTimer < 0 || player_GolfBall.transform.position.x > levelGenerator.right_worldPosScreenBorder || player_GolfBall.GetComponent<Rigidbody2D>().velocity == Vector2.zero)
+                {
+                    MenuMode(false);
+                }
             }
         }
 
-        //GameOver timer: 
-        //1. ball velocity = 0 and no goal
-        //2. ball out of the screen
-        //3. ball exceeded life time after throw
-        if(runTimer)
+        //when ball is spawned wait until it set up properly to get controll
+        if(currentPlayerState == PlayerState.getReady)
         {
             actualTimer -= Time.deltaTime;
-            if(actualTimer < 0 || player_GolfBall.transform.position.x > levelGenerator.right_worldPosScreenBorder || player_GolfBall.GetComponent<Rigidbody2D>().velocity == Vector2.zero)
+            if(actualTimer<0)
             {
-                MenuMode();
+                currentPlayerState = PlayerState.inGame;
             }
+            
         }
     }
 
@@ -72,22 +82,55 @@ public class PlayerController : MonoBehaviour
         runTimer = value;
     }
 
-    private void MenuMode()
+    public void SetActualTimer(float value)
+    {
+        actualTimer = value;
+    }
+
+    public void SetThrowUsed (bool value)
+    {
+        throwUsed = value;
+    }
+
+    public void PlayerThrowAction(bool value)
+    {
+        if(player_GolfBall!= null && player_GolfBall == lastSpawned_player_GolfBall)
+        {
+            GolfBall golfBall = player_GolfBall.GetComponent<GolfBall>();
+            Trajectory trajectory = player_GolfBall.GetComponent<Trajectory>();
+
+            golfBall.Throw(golfBall.CalculateForce(player_GolfBall.transform.position, trajectory.lastMarkerObj.transform.position, 60f));
+
+            actualTimer = ballLifeTime;
+            runTimer = true;
+
+            autoThrow = value;
+            throwUsed = true;
+        }
+    }
+
+    private void MenuMode(bool firstLaunch)
     {
         currentPlayerState = PlayerState.inMenu;
         foreach (Button element in menuButtons)
             element.gameObject.SetActive(true);
 
         runTimer = false;
+        autoThrow = false;
+
+        if (!firstLaunch)
+            levelGenerator.ShowRecordScore();
+        else
+            levelGenerator.HideRecordScore();
     }
 
     public void NewGameStart()
     {
-        currentPlayerState = PlayerState.inGame;
         foreach (Button element in menuButtons)
             element.gameObject.SetActive(false);
 
         levelGenerator.ResetPoints();
+        levelGenerator.HideRecordScore();
         actualSpeedValue = startSpeedValue;
         levelGenerator.NewLevel();
     }

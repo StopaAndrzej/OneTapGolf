@@ -13,19 +13,30 @@ public class GolfBall : MonoBehaviour
         trajectory = GetComponent<Trajectory>();
     }
 
-
     public Vector2 CalculateForce(Vector2 origin, Vector2 target, float angle)
     {
-        Vector2 direction = target - origin;
-        float h = direction.y;
-        direction.y = 0;
-        float distance = direction.magnitude;
-        float a = angle * Mathf.Deg2Rad;
-        direction.y = distance * Mathf.Tan(a);
-        distance += h / Mathf.Tan(a);
+        float distance = Vector2.Distance(origin, target);
+        float force = distance / (Mathf.Sin(2 * angle * Mathf.Deg2Rad) / 9.81f);
 
-        float velocity = Mathf.Sqrt(distance * Physics.gravity.magnitude / Mathf.Sign(2*a));
-        return velocity * direction.normalized;
+        float velocityX = Mathf.Sqrt(force) * Mathf.Cos(angle * Mathf.Deg2Rad);
+        float velocityY = Mathf.Sqrt(force) * Mathf.Sin(angle * Mathf.Deg2Rad);
+
+        float flightDuration = distance / velocityX;
+
+        return new Vector2(velocityX, velocityY);
+    }
+
+    public Vector2 CalculatePosInTime(Vector2 origin , Vector2 target, Vector2 force, float max,float value)
+    {
+        float time = (target.x - origin.x) / force.x;
+        time /= max;
+        time *= value;
+
+        Vector2 result = origin + force * time;
+        float valueY = (-0.5f * Mathf.Abs(Physics.gravity.y) * (time * time)) + (force.y * time) + origin.y;
+        result.y = valueY;
+
+        return result;
     }
 
     public void Throw(Vector2 force)

@@ -11,6 +11,8 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField] GameObject golfBallPrefab;
 
     [SerializeField] private Text scoreTxt;
+    [SerializeField] private Text recordTxt;
+
     [SerializeField] Transform parentGroundBlocksFolder;
     private PlayerController playerController;
 
@@ -21,7 +23,8 @@ public class LevelGenerator : MonoBehaviour
     
     //required to set the ground collider correctly
     private Vector2 golfHolePos; 
-    [HideInInspector] public int points = 0;
+    private int points = 0;
+    private int recordPoints = 0;
 
     private void Awake()
     {
@@ -49,6 +52,8 @@ public class LevelGenerator : MonoBehaviour
         foreach (Component comp in parentGroundBlocksFolder.gameObject.GetComponents<Component>())
             if (!(comp is Transform))
                 Destroy(comp);
+
+        playerController.SetThrowUsed(false);
 
     }
 
@@ -104,10 +109,15 @@ public class LevelGenerator : MonoBehaviour
         {
             GameObject golfBallObj = (GameObject)Instantiate(golfBallPrefab, parentGroundBlocksFolder);
             playerController.player_GolfBall = golfBallObj;
+            golfBallObj.GetComponent<Trajectory>().GetAccessToLevelGenerator(this.GetComponent<LevelGenerator>());
 
             Vector2 spawnPoint = new Vector2(left_worldPosScreenBorder/3 * 2, 0);
             golfBallObj.transform.position = spawnPoint;
         }
+
+        playerController.currentPlayerState = PlayerController.PlayerState.getReady;
+        playerController.SetActualTimer(1.5f);
+
     }
 
     private void UpdatePointsAndDifficulty(int points)
@@ -118,8 +128,8 @@ public class LevelGenerator : MonoBehaviour
             scoreTxt.text = "SCORE: " + points;
         }
 
-        //x1.2f
-        playerController.IncreaseSpeedValue(1.2f);
+        //x1.1f
+        playerController.IncreaseSpeedValue(1.1f);
     }
 
     public void AddPoint()
@@ -135,6 +145,22 @@ public class LevelGenerator : MonoBehaviour
         points = 0;
     }
 
+    public void ShowRecordScore()
+    {
+        if (recordPoints < points)
+        {
+            recordPoints = points;
+            recordTxt.text = "NEW RECORD: " + recordPoints;
+        }
+        else
+            recordTxt.text = "RECORD: " + recordPoints;
+
+        recordTxt.gameObject.SetActive(true);
+    }
+    public void HideRecordScore()
+    {
+        recordTxt.gameObject.SetActive(false);
+    }
     //check only once when the game is started
     public void CalibrateWorldPosWithCurrentAspectRatio()
     {
@@ -154,4 +180,8 @@ public class LevelGenerator : MonoBehaviour
         playerController.SetRunTime(false);
     }
 
+    public void ForceToPushBall()
+    {
+        playerController.PlayerThrowAction(true);
+    }
 }

@@ -121,7 +121,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.265
+  m_Radius: 0.25
 --- !u!114 &-719790399987940826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -149,5 +149,5 @@ MonoBehaviour:
   trajectoryMarkerPrefab: {fileID: 4809193517160326895, guid: 57f0f29d8e9ddff41b69e2eb3ae9f855,
     type: 3}
   lastMarkerObj: {fileID: 0}
-  maxNumberOfMarkers: 0
+  maxNumberOfMarkers: 20
   throwDistance: 0

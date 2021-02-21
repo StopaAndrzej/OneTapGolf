@@ -5,6 +5,8 @@ using UnityEngine;
 public class Trajectory : MonoBehaviour
 {
     [SerializeField] private GameObject trajectoryMarkerPrefab;
+    private LevelGenerator levelGenerator;
+    private GolfBall golfBallScript;
 
     [HideInInspector] public GameObject lastMarkerObj;
     private GameObject[] markers;
@@ -14,6 +16,8 @@ public class Trajectory : MonoBehaviour
 
     public float throwDistance;
     private float increasingSpeed;
+    private float maxDistanceValue;
+    private float colorChangeTime;
 
     private Vector2 startMarkerPos;
     private Vector2 endMarkerPos;
@@ -23,57 +27,23 @@ public class Trajectory : MonoBehaviour
 
     private void Start()
     {
+        golfBallScript = this.GetComponent<GolfBall>();
         lastMarkerObj = Instantiate(trajectoryMarkerPrefab, transform);
         lastMarkerObj.SetActive(false);
         runIncrease = false;
         throwChanceUsed = false;
         throwDistance = 0;
 
-        //markers = new GameObject[maxNumberOfMarkers];
-        //lastMarkerObj = Instantiate(trajectoryMarkerPrefab, parentFolder);
-        //isVisible(lastMarkerObj, false);
+        markers = new GameObject[maxNumberOfMarkers];
+        for (int i = 0; i < maxNumberOfMarkers; i++)
+        {
+            GameObject singleMarker = Instantiate(trajectoryMarkerPrefab, transform);
+            markers[i] = singleMarker;
+            markers[i].SetActive(false);
+        }
 
-        //for (int i=0; i< maxNumberOfMarkers; i++)
-        //{
-        //    GameObject singleMarker = Instantiate(trajectoryMarkerPrefab, parentFolder);
-        //    markers[i] = singleMarker;
-        //    isVisible(markers[i], false);
-        //}
-
-        //throwDistance = 0;
-        //actualNumberOfMarkers = 0;
+        actualNumberOfMarkers = 5;
     }
-
-    //private void Update()
-    //{
-    //    //if(Input.GetKey(KeyCode.Space))
-    //    //{
-
-
-    //    //   // throwDistance += Time.deltaTime * powerSpeed;
-    //    //    //Vector2 tmp = CalculateVelocity(transform.position, throwDistance ,1f);
-
-    //    //    //startMarkerPos = transform.position;
-    //    //    //endMarkerPos = new Vector2(startMarkerPos.x + throwDistance, levelGenerator.buildGroundLevelYOffset + 0.64f);
-    //    //    //lastMarkerObj.transform.position = endMarkerPos;
-    //    //    //isVisible(lastMarkerObj, true);
-
-    //    //    //actualNumberOfMarkers = (int)throwDistance % maxNumberOfMarkers;
-
-    //    //    //for(int i=0; i<actualNumberOfMarkers; i++)
-    //    //    //{
-    //    //    //    Vector2 pos = (Vector2)transform.position + (new Vector2(1,1).normalized * throwDistance *powerSpeed *0.1f * (i+1)) + 0.5f *Physics2D.gravity * 0.5f *0.5f;
-    //    //    //    markers[i].transform.position = pos;
-    //    //    //   // markers[i].transform.position = new Vector2((throwDistance / (actualNumberOfMarkers + 1)) * (i+1) + startMarkerPos.x, levelGenerator.buildGroundLevelYOffset + 0.64f);
-    //    //    //    isVisible(markers[i], true);
-    //    //    //}
-    //    //}
-
-    //    //if(Input.GetKeyUp(KeyCode.Space))
-    //    //{
-    //    //    ResetMarkers();
-    //    //}
-    //}
 
     private void Update()
     {
@@ -82,21 +52,55 @@ public class Trajectory : MonoBehaviour
             throwDistance += Time.deltaTime * increasingSpeed;
             endMarkerPos = new Vector2(startMarkerPos.x + throwDistance, -3.2f + 0.64f);
             lastMarkerObj.transform.position = endMarkerPos;
+
+            UpdateMarkers(throwDistance);
+            UpdateDistanceColor(throwDistance);
+
+            //if ball reach max distance - auto throw
+            if(lastMarkerObj.transform.position.x > maxDistanceValue)
+            {
+                if (levelGenerator != null)
+                    levelGenerator.ForceToPushBall();
+            }
         }
     }
 
+    private void UpdateMarkers(float distanceValue)
+    {
+        for (int i = 0; i < maxNumberOfMarkers; i++)
+            markers[i].transform.position = golfBallScript.CalculatePosInTime(this.transform.position, lastMarkerObj.transform.position ,golfBallScript.CalculateForce(this.transform.position, lastMarkerObj.transform.position, 60), maxNumberOfMarkers ,i);
+
+    }
+
+    void UpdateDistanceColor(float value)
+    {
+        float duration = 5f;
+        for(int i=0; i<maxNumberOfMarkers; i++)
+        {
+            markers[i].GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.yellow, colorChangeTime);
+        }
+
+        lastMarkerObj.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.yellow, colorChangeTime);
+
+        colorChangeTime += Time.deltaTime / duration;
+    }
 
     public bool CheckIfThrowWasUsed()
     {
         return throwChanceUsed;
     }
 
-    public void RunIncreaseDistance(float speedValue)
+    public void RunIncreaseDistance(float speedValue, float maxDistanceValue)
     {
         increasingSpeed = speedValue;
+        this.maxDistanceValue = maxDistanceValue;
+
         throwChanceUsed = true;
+        colorChangeTime = 0;
         startMarkerPos = transform.position;
         lastMarkerObj.SetActive(true);
+        for (int i = 0; i < maxNumberOfMarkers; i++)
+            markers[i].SetActive(true);
         runIncrease = true;
     }
 
@@ -109,11 +113,16 @@ public class Trajectory : MonoBehaviour
     public void ResetMarkers()
     {
         lastMarkerObj.SetActive(false);
-        for (int i = 0; i < actualNumberOfMarkers; i++)
+        for (int i = 0; i < maxNumberOfMarkers; i++)
         {
             markers[i].SetActive(false);
         }
         actualNumberOfMarkers = 0;
         throwDistance = 0;
+    }
+
+    public void GetAccessToLevelGenerator(LevelGenerator levelGen)
+    {
+        levelGenerator = levelGen;
     }
 }
