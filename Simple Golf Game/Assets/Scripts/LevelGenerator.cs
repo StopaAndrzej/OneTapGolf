@@ -32,6 +32,11 @@ public class LevelGenerator : MonoBehaviour
         scoreTxt.gameObject.SetActive(false);
     }
 
+    void Start()
+    {
+        Screen.SetResolution(1080, 1920, true);
+    }
+
     public void NewLevel()
     {
         ResetLevel();
